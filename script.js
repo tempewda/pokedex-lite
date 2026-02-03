@@ -4,12 +4,14 @@
 
 // API Configuration
 const POKE_API = 'https://pokeapi.co/api/v2/pokemon';
-const MAX_POKEMON = 1010; // Total Pokemon available
+const BACKEND_API = 'https://your-backend-url.azurewebsites.net'; // UPDATE THIS!
+const MAX_POKEMON = 1010;
 
 // State Management
 let currentPokemonId = null;
 let currentPokemonData = null;
 let isShiny = false;
+let favorites = []; // Track favorites
 
 // DOM Elements
 const elements = {
@@ -36,10 +38,12 @@ const elements = {
     shinyBtn: document.getElementById('shiny-btn'),
     prevBtn: document.getElementById('prev-btn'),
     nextBtn: document.getElementById('next-btn'),
-    cryBtn: document.getElementById('cry-btn')
+    cryBtn: document.getElementById('cry-btn'),
+    favBtn: document.getElementById('fav-btn'),         // NEW
+    favList: document.getElementById('favorites-list')   // NEW
 };
 
-// Stat name mappings for display
+// Stat name mappings
 const STAT_NAMES = {
     'hp': 'HP',
     'attack': 'ATK',
@@ -54,13 +58,11 @@ const STAT_NAMES = {
 // ========================================
 
 function showState(state) {
-    // Hide all states
     elements.welcomeState.classList.add('hidden');
     elements.loadingState.classList.add('hidden');
     elements.errorState.classList.add('hidden');
     elements.pokemonCard.classList.add('hidden');
     
-    // Show requested state
     switch(state) {
         case 'welcome':
             elements.welcomeState.classList.remove('hidden');
@@ -83,27 +85,153 @@ function updateNavigationButtons() {
     elements.prevBtn.disabled = !hasPokemon || currentPokemonId <= 1;
     elements.nextBtn.disabled = !hasPokemon || currentPokemonId >= MAX_POKEMON;
     elements.cryBtn.disabled = !hasPokemon;
+    
+    // Update favorite button state
+    if (elements.favBtn) {
+        elements.favBtn.disabled = !hasPokemon;
+        updateFavoriteButton();
+    }
 }
 
 // ========================================
-// API Functions
+// BACKEND API Functions (NEW!)
+// ========================================
+
+async function fetchFavorites() {
+    try {
+        const response = await fetch(`${BACKEND_API}/api/favorites`);
+        const data = await response.json();
+        if (data.success) {
+            favorites = data.data;
+            renderFavoritesList();
+        }
+    } catch (error) {
+        console.error('Failed to fetch favorites:', error);
+    }
+}
+
+async function addToFavorites() {
+    if (!currentPokemonData) return;
+    
+    const pokemon = {
+        id: currentPokemonData.id,
+        name: currentPokemonData.name,
+        sprite: currentPokemonData.sprites.front_default
+    };
+    
+    try {
+        const response = await fetch(`${BACKEND_API}/api/favorites`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(pokemon)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            favorites.push(data.data);
+            updateFavoriteButton();
+            renderFavoritesList();
+            showNotification(`${pokemon.name.toUpperCase()} added to favorites!`);
+        } else {
+            showNotification(data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Failed to add favorite:', error);
+        showNotification('Failed to add to favorites', 'error');
+    }
+}
+
+async function removeFromFavorites(id) {
+    try {
+        const response = await fetch(`${BACKEND_API}/api/favorites/${id}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            favorites = favorites.filter(f => f.id !== id);
+            updateFavoriteButton();
+            renderFavoritesList();
+            showNotification(`${data.data.name.toUpperCase()} removed from favorites`);
+        }
+    } catch (error) {
+        console.error('Failed to remove favorite:', error);
+    }
+}
+
+function isFavorite(id) {
+    return favorites.some(f => f.id === id);
+}
+
+function updateFavoriteButton() {
+    if (!elements.favBtn || !currentPokemonData) return;
+    
+    if (isFavorite(currentPokemonData.id)) {
+        elements.favBtn.textContent = '❤️';
+        elements.favBtn.classList.add('active');
+        elements.favBtn.title = 'Remove from favorites';
+    } else {
+        elements.favBtn.textContent = '🤍';
+        elements.favBtn.classList.remove('active');
+        elements.favBtn.title = 'Add to favorites';
+    }
+}
+
+function renderFavoritesList() {
+    if (!elements.favList) return;
+    
+    if (favorites.length === 0) {
+        elements.favList.innerHTML = '<p class="no-favorites">No favorites yet!</p>';
+        return;
+    }
+    
+    elements.favList.innerHTML = favorites.map(fav => `
+        <div class="favorite-item" data-id="${fav.id}">
+            <img src="${fav.sprite}" alt="${fav.name}" width="40" height="40">
+            <span>${fav.name.toUpperCase()}</span>
+            <button class="remove-fav" onclick="removeFromFavorites(${fav.id})">✕</button>
+        </div>
+    `).join('');
+}
+
+function toggleFavorite() {
+    if (!currentPokemonData) return;
+    
+    if (isFavorite(currentPokemonData.id)) {
+        removeFromFavorites(currentPokemonData.id);
+    } else {
+        addToFavorites();
+    }
+}
+
+// Simple notification
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// ========================================
+// PokeAPI Functions
 // ========================================
 
 async function fetchPokemon(query) {
-    // Clean up the query
     const cleanQuery = String(query).toLowerCase().trim();
     
-    if (!cleanQuery) {
-        return null;
-    }
+    if (!cleanQuery) return null;
     
     try {
         const response = await fetch(`${POKE_API}/${cleanQuery}`);
-        
-        if (!response.ok) {
-            throw new Error('Pokemon not found');
-        }
-        
+        if (!response.ok) throw new Error('Pokemon not found');
         return await response.json();
     } catch (error) {
         console.error('Fetch error:', error);
@@ -120,28 +248,20 @@ function displayPokemon(pokemon) {
     currentPokemonId = pokemon.id;
     isShiny = false;
     
-    // Update sprite
     updateSprite();
     
-    // Update basic info
     elements.pokemonNumber.textContent = `#${String(pokemon.id).padStart(3, '0')}`;
     elements.pokemonName.textContent = pokemon.name.toUpperCase();
     
-    // Update types
     displayTypes(pokemon.types);
-    
-    // Update stats
     displayStats(pokemon.stats);
     
-    // Update measurements
     elements.pokemonHeight.textContent = `${(pokemon.height / 10).toFixed(1)}m`;
     elements.pokemonWeight.textContent = `${(pokemon.weight / 10).toFixed(1)}kg`;
     
-    // Update UI state
     updateNavigationButtons();
     elements.shinyBtn.classList.remove('active');
     
-    // Show pokemon card
     showState('pokemon');
 }
 
@@ -180,7 +300,6 @@ function displayStats(stats) {
             const statValue = statInfo.base_stat;
             const percentage = Math.min((statValue / 150) * 100, 100);
             
-            // Determine bar color class
             let barClass = 'low';
             if (statValue >= 80) barClass = 'high';
             else if (statValue >= 50) barClass = 'medium';
@@ -226,15 +345,12 @@ async function handleSearch() {
         return;
     }
     
-    // Show loading
     showState('loading');
     
-    // Fetch Pokemon
     const pokemon = await fetchPokemon(query);
     
     if (pokemon) {
         displayPokemon(pokemon);
-        // Play a small click sound effect (optional enhancement)
         playClickSound();
     } else {
         showState('error');
@@ -273,7 +389,6 @@ function toggleShiny() {
     elements.shinyBtn.classList.toggle('active', isShiny);
     updateSprite();
     
-    // Add sparkle animation
     elements.pokemonSprite.style.animation = 'none';
     setTimeout(() => {
         elements.pokemonSprite.style.animation = 'fadeIn 0.3s ease';
@@ -281,11 +396,10 @@ function toggleShiny() {
 }
 
 // ========================================
-// Sound Effects (Optional Enhancement)
+// Sound Effects
 // ========================================
 
 function playClickSound() {
-    // Create a simple beep using Web Audio API
     try {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
@@ -303,7 +417,7 @@ function playClickSound() {
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.1);
     } catch (e) {
-        // Audio not supported, fail silently
+        // Audio not supported
     }
 }
 
@@ -311,24 +425,21 @@ function playClickSound() {
 // Event Listeners
 // ========================================
 
-// Search functionality
 elements.searchBtn.addEventListener('click', handleSearch);
 
 elements.searchInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        handleSearch();
-    }
+    if (e.key === 'Enter') handleSearch();
 });
 
-// Navigation
 elements.prevBtn.addEventListener('click', handlePrev);
 elements.nextBtn.addEventListener('click', handleNext);
-
-// Shiny toggle
 elements.shinyBtn.addEventListener('click', toggleShiny);
-
-// Play cry
 elements.cryBtn.addEventListener('click', playCry);
+
+// Favorite button listener (NEW!)
+if (elements.favBtn) {
+    elements.favBtn.addEventListener('click', toggleFavorite);
+}
 
 // Keyboard navigation
 document.addEventListener('keydown', (e) => {
@@ -345,6 +456,10 @@ document.addEventListener('keydown', (e) => {
         case 'S':
             toggleShiny();
             break;
+        case 'f':
+        case 'F':
+            toggleFavorite();
+            break;
     }
 });
 
@@ -355,13 +470,7 @@ document.addEventListener('keydown', (e) => {
 function init() {
     showState('welcome');
     updateNavigationButtons();
-    
-    // Load a random Pokemon as a fun start (optional)
-    // Uncomment the next lines to auto-load a Pokemon on startup
-    // const randomId = Math.floor(Math.random() * 151) + 1; // Gen 1
-    // elements.searchInput.value = randomId;
-    // handleSearch();
+    fetchFavorites(); // Load favorites from backend on startup
 }
 
-// Start the app
 init();
