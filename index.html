@@ -75,6 +75,11 @@
                     <button id="shiny-btn" class="btn-shiny" title="Toggle Shiny">
                         ✨
                     </button>
+
+                    <!-- Inside sprite-section, after shiny button -->
+                    <button id="fav-btn" class="btn-fav" disabled title="Add to favorites">
+                        🤍
+                    </button>
                 </div>
 
                 <!-- Info Section -->
@@ -114,6 +119,12 @@
             </button>
         </nav>
 
+        <!-- Add favorites panel somewhere in your HTML (e.g., after navigation) -->
+        <div class="favorites-panel">
+            <h3>⭐ Favorites</h3>
+            <div id="favorites-list"></div>
+        </div>
+
         <!-- Footer -->
         <footer class="pokedex-footer">
             <div class="dpad">
@@ -128,4 +139,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>
