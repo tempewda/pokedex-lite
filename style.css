@@ -685,4 +685,120 @@ body {
         width: 50px;
         height: 50px;
     }
+
+}
+
+/* Favorite Button */
+.btn-fav {
+    position: absolute;
+    top: 0;
+    left: 20px;
+    background: linear-gradient(145deg, #ff6b9d, #c44569);
+    border: 3px solid #333;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 2px 2px 0 #333;
+}
+
+.btn-fav:hover:not(:disabled) {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 107, 157, 0.7);
+}
+
+.btn-fav:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-fav.active {
+    animation: heartbeat 0.5s ease;
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+}
+
+/* Favorites Panel */
+.favorites-panel {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.favorites-panel h3 {
+    color: var(--highlight-yellow);
+    font-size: 0.6rem;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.favorite-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.favorite-item img {
+    image-rendering: pixelated;
+}
+
+.favorite-item span {
+    flex: 1;
+    color: #fff;
+    font-size: 0.5rem;
+}
+
+.remove-fav {
+    background: var(--stat-red);
+    border: none;
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.6rem;
+}
+
+.no-favorites {
+    color: #888;
+    font-size: 0.5rem;
+    text-align: center;
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.5rem;
+    z-index: 2000;
+    animation: slideIn 0.3s ease;
+}
+
+.notification.success {
+    background: var(--stat-green);
+    color: #fff;
+}
+
+.notification.error {
+    background: var(--stat-red);
+    color: #fff;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
