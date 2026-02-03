@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokedex Lite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="scanlines"></div>
+    
+    <div class="pokedex">
+        <!-- Top decorative lights -->
+        <div class="pokedex-top">
+            <div class="light-big">
+                <div class="light-big-inner"></div>
+            </div>
+            <div class="lights-small">
+                <div class="light-small red"></div>
+                <div class="light-small yellow"></div>
+                <div class="light-small green"></div>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header class="pokedex-header">
+            <h1>POKEDEX</h1>
+            <p class="subtitle">Kanto Edition</p>
+        </header>
+
+        <!-- Search Section -->
+        <div class="search-container">
+            <input 
+                type="text" 
+                id="search-input" 
+                placeholder="Name or #" 
+                maxlength="20"
+                autocomplete="off"
+            >
+            <button id="search-btn" class="btn btn-search">
+                SEARCH
+            </button>
+        </div>
+
+        <!-- Main Screen -->
+        <main class="screen">
+            <!-- Welcome State -->
+            <div class="state welcome-state" id="welcome-state">
+                <div class="welcome-pokeball"></div>
+                <p>Enter a Pokemon</p>
+                <p>name or number!</p>
+            </div>
+
+            <!-- Loading State -->
+            <div class="state loading-state hidden" id="loading-state">
+                <div class="pokeball-spinner"></div>
+                <p>Searching...</p>
+            </div>
+
+            <!-- Error State -->
+            <div class="state error-state hidden" id="error-state">
+                <div class="error-icon">✕</div>
+                <p>Pokemon not found!</p>
+                <p class="error-hint">Try another name</p>
+            </div>
+
+            <!-- Pokemon Display -->
+            <div class="pokemon-card hidden" id="pokemon-card">
+                <!-- Sprite Section -->
+                <div class="sprite-section">
+                    <div class="sprite-container">
+                        <img id="pokemon-sprite" src="" alt="Pokemon Sprite">
+                    </div>
+                    <button id="shiny-btn" class="btn-shiny" title="Toggle Shiny">
+                        ✨
+                    </button>
+                </div>
+
+                <!-- Info Section -->
+                <div class="info-section">
+                    <span class="pokemon-number" id="pokemon-number">#001</span>
+                    <h2 class="pokemon-name" id="pokemon-name">BULBASAUR</h2>
+                    <div class="pokemon-types" id="pokemon-types"></div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="stats-section" id="stats-section"></div>
+
+                <!-- Measurements -->
+                <div class="measurements">
+                    <div class="measure">
+                        <span class="measure-label">HT</span>
+                        <span class="measure-value" id="pokemon-height">0.7m</span>
+                    </div>
+                    <div class="measure">
+                        <span class="measure-label">WT</span>
+                        <span class="measure-value" id="pokemon-weight">6.9kg</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Navigation -->
+        <nav class="navigation">
+            <button id="prev-btn" class="btn btn-nav" disabled>
+                ◄ PREV
+            </button>
+            <button id="cry-btn" class="btn btn-cry" disabled title="Play Cry">
+                🔊
+            </button>
+            <button id="next-btn" class="btn btn-nav" disabled>
+                NEXT ►
+            </button>
+        </nav>
+
+        <!-- Footer -->
+        <footer class="pokedex-footer">
+            <div class="dpad">
+                <div class="dpad-up"></div>
+                <div class="dpad-right"></div>
+                <div class="dpad-down"></div>
+                <div class="dpad-left"></div>
+                <div class="dpad-center"></div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
