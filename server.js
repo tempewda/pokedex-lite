@@ -26,7 +26,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Get all favorites
-app.get('/api/favorites', (req, res) => {
+app.get('/', (req, res) => {
     res.json({
         success: true,
         count: favorites.length,
